@@ -54,11 +54,11 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
 
-    private void parseAndSaveTask(String text, long chatId){
+    private void parseAndSaveTask(String text, long chatId) {
         Pattern pattern = Pattern.compile("([0-9\\.\\:\\s]{16})(\\s)([\\W+]+)");
         Matcher matcher = pattern.matcher(text);
 
-        if(matcher.matches()){
+        if (matcher.matches()) {
             LocalDateTime dateAndTime = LocalDateTime.parse(matcher.group(1), DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
             String message = matcher.group(3);
 
@@ -69,18 +69,4 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             notificationTaskRepository.save(task);
         }
     }
-
-    @Scheduled(cron = "0 0/1 * * * *")
-    public void scheduling(){
-        LocalDateTime dateAndTimeNow = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
-
-        List<NotificationTask> tasks = notificationTaskRepository.findByDateAndTime(dateAndTimeNow);
-        for (NotificationTask task : tasks) {
-            Long chatId = task.getChatId();
-            String message = task.getMessage();
-            SendMessage sentMessage = new SendMessage(chatId, message);
-            telegramBot.execute(sentMessage);
-        }
-    }
-
 }
